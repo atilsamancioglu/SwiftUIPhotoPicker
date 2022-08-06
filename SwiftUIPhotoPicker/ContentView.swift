@@ -6,14 +6,46 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct ContentView: View {
+    
+    @State var selectedItems : [PhotosPickerItem] = []
+    @State var data : Data?
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            if let data = data {
+                if let selectedImage = UIImage(data:  data) {
+                    Spacer()
+
+                    Image(uiImage: selectedImage)
+                        .resizable()
+                        .frame(width: 300,height: 250,alignment: .center)
+                        
+                }
+            }
+                Spacer()
+
+                    PhotosPicker(selection: $selectedItems, maxSelectionCount: 1,  matching: .images) {
+                        Text("Select Image")
+                    
+                    }.onChange(of: selectedItems) { newValue in
+                        guard let item = selectedItems.first else {
+                            return
+                        }
+                        item.loadTransferable(type: Data.self) { result in
+                            switch result {
+                            case .success(let data):
+                                if let data = data {
+                                    self.data = data
+                                }
+                            case .failure(let error):
+                                print(error)
+                            }
+                            
+                        }
+                    }
         }
     }
 }
